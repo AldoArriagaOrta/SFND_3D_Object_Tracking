@@ -279,7 +279,7 @@ int main(int argc, const char *argv[])
                         putText(visImg, str, cv::Point2f(80, 50), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0,0,255));
 
                         string windowName = "Final Results : TTC";
-                        cv::namedWindow(windowName, 4);
+                        cv::namedWindow(windowName, 0);
                         cv::imshow(windowName, visImg);
                         cout << "Press key to continue to next frame" << endl;
                         cv::waitKey(0);
