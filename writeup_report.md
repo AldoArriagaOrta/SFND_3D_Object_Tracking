@@ -8,7 +8,15 @@
 
 [//]: # (Image References)
 
-[image3]: ./writeup_images/image1.png "image1"
+[image1]: ./writeup_images/TTC_lidar.png "TTC_lidar"
+[image2]: ./writeup_images/TTC_camera.png "TTC_camera"
+[image3]: ./writeup_images/TTC_camera.png "TTC_camera"
+[image11]: ./writeup_images/11.png "frame11"
+[image12]: ./writeup_images/12.png "frame12"
+[image13]: ./writeup_images/13.png "frame13"
+[image16]: ./writeup_images/16.png "frame16"
+[image17]: ./writeup_images/17.png "frame17"
+
 
 
 ---
@@ -25,8 +33,7 @@ Code is functional and returns the specified output, where each bounding box is 
 
 #### Solution
 
-The initial implementation 
-
+The solution uses of a multimap to store the matched pairs counts.
 
 ```c++
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
@@ -159,7 +166,9 @@ Code performs as described and adds the keypoint correspondences to the "kptMatc
 
 #### Solution
 
-The 
+The solution was implemented in the clusterKptMatchesWithROI function of camFusion_Student.cpp
+
+A median filter was used to enhance robustness.
 
 ```c++
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, 
@@ -209,7 +218,7 @@ Code is functional and returns the specified output. Also, the code is able to d
 
 #### Solution
 
-The 
+The implementation is based directly on the code studied in the lesson. It uses a median filter to reject outliers.
 
 ```c++
 void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, 
@@ -254,7 +263,6 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     }
 
     // compute camera-based TTC from distance ratios
-    double meanDistRatio = std::accumulate(distRatios.begin(), distRatios.end(), 0.0) / distRatios.size();
   	std::sort(distRatios.begin(), distRatios.end());
     double medIndex = floor(distRatios.size()/2.0);
   	double medianDistRatio = distRatios.size() % 2 == 0 ? (distRatios[medIndex - 1] + distRatios[medIndex]) / 2.0 : 
@@ -276,11 +284,24 @@ Several examples (2-3) have been identified and described in detail. The asserti
 
 #### Solution
 
-The 
+Between frames 11 and 12 there is a noisy lidar point that introduces an important error in the TTC computation.
 
-```c++
+![alt text][image11] ![alt text][image12] ![alt text][image13]
 
-```
+This point effectively makes it look like the preceding vehicle changed direction between frames, giving a negative TTC = -10.38571429 s
+
+A second example of this effect is shown in the last two frames
+
+![alt text][image16] ![alt text][image17]
+
+Giving also a negative TTC = -9.857142857 s
+
+Thanks to the median filter in the implementation, the TTC is much more robust to this effect:
+
+![alt text][image1]
+
+There seems to be also an issue in frame 4. The distance between frames seems to be rather small and might indicate a latency issue. Is the time synchronization guaranteed? Is dt truly consistent?
+
 
 ### FP.6 Performance Evaluation 2
 
@@ -296,7 +317,14 @@ All detector / descriptor combinations implemented in previous chapters have bee
 
 The data for this analysis is available in this [spreadsheet](https://docs.google.com/spreadsheets/d/1VBbLL6KB2y7tE6Bmjy8iFbTGy8eLFMegTuukmtArr5c/edit#gid=1837838976)
 
-```c++
+The most stable detector-descriptor pairs are summarized in the next plot:
 
+![alt text][image2]
 
-```
+It is clear that most detector-descriptor pairs struggle with frame 4. Further investigation is needed to determine the cause of the spike in the TTC values. The fact that it is the same frame as with the lidar detection might give some support to my hypothesis about the inconsistent delta time.
+
+The execution times for these pairs was also analyzed and summarized in the following plot:
+
+![alt text][image3]
+
+All the pairs here presented using a FAST detector show stable performance with great execution time. Surprisingly SHITOMASI-SIFT and SHITOMASI-ORB give very reasonable results as well. All these would be suitable options for further development.

@@ -3,6 +3,7 @@
 #define camFusion_hpp
 
 #include <stdio.h>
+#include <fstream>
 #include <vector>
 #include <opencv2/core.hpp>
 #include "dataStructures.h"
